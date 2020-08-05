@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.11)
 
 # Detect if the project is being bundled.
 
@@ -42,8 +42,6 @@ if(NOT_SUBPROJECT)
   if(CXX_HAS_PEDANTIC_FLAG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
   endif()
-
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 endif()
 
 if((NOT_SUBPROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)
