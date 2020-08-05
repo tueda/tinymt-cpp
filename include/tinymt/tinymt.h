@@ -129,9 +129,9 @@ struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
     }
   }
 
-  static UIntType temper(const status_type& s) {
-    UIntType t0 = s.status[3];
-    UIntType t1 = s.status[0] + (s.status[2] >> sh8);
+  static result_type temper(const status_type& s) {
+    result_type t0 = s.status[3];
+    result_type t1 = s.status[0] + (s.status[2] >> sh8);
     t0 ^= t1;
     if (t1 & 1) {
       t0 ^= s.tmat;
@@ -219,9 +219,7 @@ class tinymt_engine {
     return methods::temper(s_);
   }
 
-  friend bool operator==(
-      const tinymt_engine<UIntType, WordSize, Mat1, Mat2, TMat>& a,
-      const tinymt_engine<UIntType, WordSize, Mat1, Mat2, TMat>& b) {
+  friend bool operator==(const tinymt_engine& a, const tinymt_engine& b) {
     if (a.s_.mat1 != b.s_.mat1 || a.s_.mat2 != b.s_.mat2 ||
         a.s_.tmat != b.s_.tmat) {
       return false;
@@ -264,6 +262,7 @@ class tinymt_engine {
     }
     return is;
   }
+
   template <class CharT, class Traits, class T = result_type,
             typename std::enable_if<std::is_same<T, result_type>::value &&
                                         status_type::is_dynamic::value,
