@@ -76,6 +76,15 @@ struct tinymt_engine_status<UIntType, 64, 0, 0, 0> {
   struct is_dynamic : std::true_type {};
 };
 
+// Parameter set.
+
+template <class UIntType>
+struct tinymt_engine_parameter_set {
+  UIntType mat1;
+  UIntType mat2;
+  UIntType tmat;
+};
+
 // Methods.
 
 template <class UIntType, std::size_t WordSize, std::uintmax_t Mat1,
@@ -87,12 +96,15 @@ template <class UIntType, std::uintmax_t Mat1, std::uintmax_t Mat2,
 struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
   using result_type = UIntType;
   using status_type = tinymt_engine_status<UIntType, 32, Mat1, Mat2, TMat>;
+  using parameter_set_type = detail::tinymt_engine_parameter_set<UIntType>;
 
   static constexpr std::size_t sh0 = 1;
   static constexpr std::size_t sh1 = 10;
   static constexpr std::size_t sh8 = 8;
   static constexpr result_type mask32 = (result_type)status_type::word_mask;
   static constexpr result_type mask = (result_type)status_type::mask;
+  static constexpr parameter_set_type default_parameter_set = {
+      0x8f7011ee, 0xfc78ff1f, 0x3793fdff};
 
   static void init(status_type& s, result_type seed) {
     const int MIN_LOOP = 8;
@@ -140,17 +152,6 @@ struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
   }
 };
 
-// TODO: TinyMT64
-
-// Parameter set.
-
-template <class UIntType>
-struct tinymt_engine_parameter_set {
-  UIntType mat1;
-  UIntType mat2;
-  UIntType tmat;
-};
-
 }  // namespace detail
 
 // Main class.
@@ -181,6 +182,8 @@ class tinymt_engine {
   static constexpr std::size_t word_size = WordSize;
   static constexpr std::size_t state_size = status_type::state_size;
   static constexpr result_type default_seed = 1;
+  static constexpr parameter_set_type default_parameter_set =
+      methods::default_parameter_set;
 
   template <class T = result_type,
             typename std::enable_if<std::is_same<T, result_type>::value &&
@@ -279,10 +282,12 @@ class tinymt_engine {
   }
 };
 
-using tinymt32 =
-    tinymt_engine<uint_fast32_t, 32, 0x8f7011ee, 0xfc78ff1f, 0x3793fdff>;
-
 using tinymt32_dc = tinymt_engine<uint_fast32_t, 32, 0, 0, 0>;
+
+using tinymt32 =
+    tinymt_engine<uint_fast32_t, 32, tinymt32_dc::default_parameter_set.mat1,
+                  tinymt32_dc::default_parameter_set.mat2,
+                  tinymt32_dc::default_parameter_set.tmat>;
 
 }  // namespace tinymt
 
