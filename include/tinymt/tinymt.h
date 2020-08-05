@@ -202,7 +202,7 @@ class tinymt_engine {
     methods::init(s_, seed);
   }
 
-  void seed(result_type value = default_seed) { methods::init(s_, seed); }
+  void seed(result_type value = default_seed) { methods::init(s_, value); }
 
   void discard(unsigned long long z) {
     for (unsigned long long i = 0; i < z; i++) {
