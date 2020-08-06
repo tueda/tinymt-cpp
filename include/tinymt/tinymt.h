@@ -12,6 +12,13 @@
 #include <ostream>
 #include <type_traits>
 
+#define TINYMT_CPP_ENABLE(condition)                                        \
+  typename TINYMT_CPP_ENABLE_T_ = std::nullptr_t,                           \
+           typename std::enable_if < std::is_same<TINYMT_CPP_ENABLE_T_,     \
+                                                  std::nullptr_t>::value && \
+               (condition),                                                 \
+           std::nullptr_t > ::type = nullptr
+
 namespace tinymt {
 
 namespace detail {
@@ -185,18 +192,12 @@ class tinymt_engine {
   static constexpr parameter_set_type default_parameter_set =
       methods::default_parameter_set;
 
-  template <class T = result_type,
-            typename std::enable_if<std::is_same<T, result_type>::value &&
-                                        !status_type::is_dynamic::value,
-                                    std::nullptr_t>::type = nullptr>
+  template <TINYMT_CPP_ENABLE(!status_type::is_dynamic::value)>
   explicit tinymt_engine(result_type seed = default_seed) {
     methods::init(s_, seed);
   }
 
-  template <class T = result_type,
-            typename std::enable_if<std::is_same<T, result_type>::value &&
-                                        status_type::is_dynamic::value,
-                                    std::nullptr_t>::type = nullptr>
+  template <TINYMT_CPP_ENABLE(status_type::is_dynamic::value)>
   explicit tinymt_engine(const parameter_set_type& params,
                          result_type seed = default_seed) {
     s_.mat1 = params.mat1 & status_type::word_mask;
@@ -255,9 +256,7 @@ class tinymt_engine {
   }
 
   template <class CharT, class Traits, class T = result_type,
-            typename std::enable_if<std::is_same<T, result_type>::value &&
-                                        !status_type::is_dynamic::value,
-                                    std::nullptr_t>::type = nullptr>
+            TINYMT_CPP_ENABLE(!status_type::is_dynamic::value)>
   friend std::basic_istream<CharT, Traits>& operator>>(
       std::basic_istream<CharT, Traits>& is, tinymt_engine& a) {
     for (std::size_t i = 0; i < a.state_size; i++) {
@@ -267,9 +266,7 @@ class tinymt_engine {
   }
 
   template <class CharT, class Traits, class T = result_type,
-            typename std::enable_if<std::is_same<T, result_type>::value &&
-                                        status_type::is_dynamic::value,
-                                    std::nullptr_t>::type = nullptr>
+            TINYMT_CPP_ENABLE(status_type::is_dynamic::value)>
   friend std::basic_istream<CharT, Traits>& operator>>(
       std::basic_istream<CharT, Traits>& is, tinymt_engine& a) {
     for (std::size_t i = 0; i < a.state_size; i++) {
