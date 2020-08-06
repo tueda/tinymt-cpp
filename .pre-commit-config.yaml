@@ -12,6 +12,9 @@ repos:
     rev: v0.6.11
     hooks:
     -   id: cmake-format
+        additional_dependencies: [pyyaml==5.3.1]
+    -   id: cmake-lint
+        additional_dependencies: [pyyaml==5.3.1]
 -   repo: https://github.com/bmorcos/pre-commit-hooks-cpp
     rev: eac2afa885007ef83ce0354e64a8b1a82024eab0
     hooks:
