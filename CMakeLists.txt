@@ -11,8 +11,6 @@ endif()
 project(
   tinymt
   VERSION 0.0.1
-  DESCRIPTION
-    "A C++ implementation of the TinyMT pseudo random number generator"
   LANGUAGES CXX)
 
 add_library(${PROJECT_NAME} INTERFACE)
@@ -41,6 +39,16 @@ if(NOT_SUBPROJECT)
   check_cxx_compiler_flag("-pedantic" CXX_HAS_PEDANTIC_FLAG)
   if(CXX_HAS_PEDANTIC_FLAG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+  endif()
+
+  # Document generation.
+
+  find_package(Doxygen)
+
+  if(DOXYGEN_FOUND)
+    add_subdirectory(docs)
+  else()
+    message(STATUS "Doxygen not found")
   endif()
 endif()
 
