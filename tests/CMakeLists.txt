@@ -1,3 +1,12 @@
+if(NOT_SUBPROJECT)
+  # Define the "check" target. Use "make check" instead of "make test"; the
+  # latter is known not to update executables (cmake/cmake#8774).
+  add_custom_target(
+    check
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    COMMENT "Running tests")
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
   doctest
@@ -15,6 +24,7 @@ function(tinymt_cpp_test name)
   target_link_libraries(${name}.exe doctest)
   if(NOT_SUBPROJECT)
     target_link_libraries(${name}.exe coverage_config)
+    add_dependencies(check ${name}.exe)
   endif()
   add_test(NAME ${name} COMMAND ${name}.exe)
 endfunction()

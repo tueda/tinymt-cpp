@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=YES
-      - run: cmake --build build --target all test
+      - run: cmake --build build --target check
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -36,4 +36,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-      - run: cmake --build build --target all test
+      - run: cmake --build build --target check
