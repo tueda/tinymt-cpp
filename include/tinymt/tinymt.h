@@ -56,33 +56,6 @@ struct tinymt_engine_status<UIntType, 32, 0, 0, 0> {
   struct is_dynamic : std::true_type {};
 };
 
-template <class UIntType, std::uintmax_t Mat1, std::uintmax_t Mat2,
-          std::uintmax_t TMat>
-struct tinymt_engine_status<UIntType, 64, Mat1, Mat2, TMat> {
-  using result_type = UIntType;
-  result_type status[2];
-  static constexpr result_type mat1 = Mat1;
-  static constexpr result_type mat2 = Mat2;
-  static constexpr result_type tmat = TMat;
-  static constexpr std::size_t state_size = 2;
-  static constexpr std::uintmax_t word_mask = 0xffffffffffffffffu;  // 2^64 - 1
-  static constexpr std::uintmax_t mask = 0x7fffffffffffffffu;       // 2^63 - 1
-  struct is_dynamic : std::false_type {};
-};
-
-template <class UIntType>
-struct tinymt_engine_status<UIntType, 64, 0, 0, 0> {
-  using result_type = UIntType;
-  result_type status[2];
-  result_type mat1;
-  result_type mat2;
-  result_type tmat;
-  static constexpr std::size_t state_size = 2;
-  static constexpr std::uintmax_t word_mask = 0xffffffffffffffffu;  // 2^64 - 1
-  static constexpr std::uintmax_t mask = 0x7fffffffffffffffu;       // 2^63 - 1
-  struct is_dynamic : std::true_type {};
-};
-
 // Parameter set.
 
 template <class UIntType>
@@ -168,7 +141,7 @@ template <class UIntType, size_t WordSize, UIntType Mat1, UIntType Mat2,
 class tinymt_engine {
   static_assert(std::is_unsigned<UIntType>::value,
                 "result_type must be an unsigned integral type");
-  static_assert(WordSize == 32 || WordSize == 64, "word_size must be 32 or 64");
+  static_assert(WordSize == 32, "word_size must be 32");
 
   using methods =
       detail::tinymt_engine_methods<UIntType, WordSize, Mat1, Mat2, TMat>;
