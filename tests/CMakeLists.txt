@@ -17,4 +17,5 @@ function(tinymt_cpp_test name)
 endfunction()
 
 tinymt_cpp_test(test-include)
+tinymt_cpp_test(test-expand)
 tinymt_cpp_test(test-rfc8682)

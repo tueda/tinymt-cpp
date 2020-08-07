@@ -189,7 +189,7 @@ class tinymt_engine {
 
   static constexpr result_type min() { return 0; }
 
-  static constexpr result_type max() { return status_type::max; }
+  static constexpr result_type max() { return status_type::word_mask; }
 
   result_type operator()() {
     methods::next_state(s_);
