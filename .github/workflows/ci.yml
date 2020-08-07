@@ -2,6 +2,10 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+  CTEST_OUTPUT_ON_FAILURE: ON
+  CTEST_PARALLEL_LEVEL: 2
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -18,10 +22,16 @@ jobs:
       - run: sudo apt-get install -y doxygen
       - run: cmake -S . -B build
       - run: cmake --build build --target doc
+  cov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=YES
+      - run: cmake --build build --target all test
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
   test:
-    env:
-      CTEST_OUTPUT_ON_FAILURE: ON
-      CTEST_PARALLEL_LEVEL: 2
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
