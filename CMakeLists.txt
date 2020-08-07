@@ -50,6 +50,29 @@ if(NOT_SUBPROJECT)
   else()
     message(STATUS "Doxygen not found")
   endif()
+
+  # Code coverage.
+
+  add_library(coverage_config INTERFACE)
+
+  option(CODE_COVERAGE "Enable coverage reporting" OFF)
+
+  if(CODE_COVERAGE)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(coverage_config INTERFACE -O0 -g --coverage)
+        if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+          target_link_options(coverage_config INTERFACE --coverage)
+        else()
+          target_link_libraries(coverage_config INTERFACE --coverage)
+        endif()
+      else()
+        message(STATUS "Coverage reporting requires GCC or LLVM/Clang")
+      endif()
+    else()
+      message(STATUS "Coverage reporting requires Debug build type")
+    endif()
+  endif()
 endif()
 
 if((NOT_SUBPROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)
