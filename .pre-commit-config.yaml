@@ -8,6 +8,7 @@ repos:
     -   id: check-yaml
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
 -   repo: https://github.com/cheshirekow/cmake-format-precommit
     rev: v0.6.11
     hooks:
@@ -19,7 +20,7 @@ repos:
     rev: eac2afa885007ef83ce0354e64a8b1a82024eab0
     hooks:
     -   id: clang-format
-        args: ["-style=file"]
+        args: [-style=file]
 -   repo: https://github.com/jorisroovers/gitlint
     rev: v0.13.1
     hooks:
