@@ -35,6 +35,10 @@ cmake --build build/coverage --target check
 lcov -c -d build/coverage -o build/coverage/coverage.info
 genhtml -o build/coverage/html build/coverage/coverage.info
 
+# Compiler sanitizers.
+cmake -S . -B build/sanitizer -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
+cmake --build build/sanitizer --target check
+
 # Benchmarking.
 cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release
 cmake --build build/release --target bench

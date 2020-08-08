@@ -73,6 +73,33 @@ if(NOT_SUBPROJECT)
       message(STATUS "Coverage reporting requires Debug build type")
     endif()
   endif()
+
+  # ASAN/UBSAN.
+
+  add_library(sanitizer_config INTERFACE)
+
+  option(USE_SANITIZER "Enable compiler sanitizers" OFF)
+
+  if(USE_SANITIZER)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(
+          sanitizer_config INTERFACE -O0 -g -fsanitize=address,undefined
+                                     -fno-omit-frame-pointer)
+        if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+          target_link_options(sanitizer_config INTERFACE
+                              -fsanitize=address,undefined)
+        else()
+          target_link_libraries(sanitizer_config
+                                INTERFACE -fsanitize=address,undefined)
+        endif()
+      else()
+        message(STATUS "Compiler sanitizers require GCC or LLVM/Clang")
+      endif()
+    else()
+      message(STATUS "Compiler sanitizers require Debug build type")
+    endif()
+  endif()
 endif()
 
 if((NOT_SUBPROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)
