@@ -29,7 +29,7 @@ cmake --build build/debug --target check
 cmake --build build/debug --target doc
 
 # Code coverage.
-cmake -S . -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=YES
+cmake -S . -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
 lcov -z -d build/coverage
 cmake --build build/coverage --target check
 lcov -c -d build/coverage -o build/coverage/coverage.info

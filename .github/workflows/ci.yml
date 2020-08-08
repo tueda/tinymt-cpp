@@ -22,11 +22,11 @@ jobs:
       - run: sudo apt-get install -y doxygen
       - run: cmake -S . -B build
       - run: cmake --build build --target doc
-  cov:
+  coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=YES
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
       - run: cmake --build build --target check
       - uses: codecov/codecov-action@v1
         with:
