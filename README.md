@@ -6,7 +6,7 @@ tinymt-cpp
 
 A C++11 header-only implementation of the
 [TinyMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/TINYMT/index.html)
-pseudo random number generator.
+pseudo-random number generator.
 
 
 Development
@@ -43,6 +43,11 @@ cmake --build build/sanitizer --target check
 cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release
 cmake --build build/release --target bench
 ```
+
+License
+-------
+
+[BSD-3-Clause](https://github.com/tueda/tinymt-cpp/blob/master/LICENSE)
 
 
 References
