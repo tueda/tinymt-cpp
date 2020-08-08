@@ -73,6 +73,12 @@ if(NOT_SUBPROJECT)
       message(STATUS "Coverage reporting requires Debug build type")
     endif()
   endif()
+
+  # Benchmarking.
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_subdirectory(benches)
+  endif()
 endif()
 
 if((NOT_SUBPROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)

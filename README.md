@@ -34,6 +34,10 @@ lcov -z -d build/coverage
 cmake --build build/coverage --target check
 lcov -c -d build/coverage -o build/coverage/coverage.info
 genhtml -o build/coverage/html build/coverage/coverage.info
+
+# Benchmarking.
+cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --target bench
 ```
 
 
