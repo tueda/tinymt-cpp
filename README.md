@@ -2,7 +2,7 @@ tinymt-cpp
 ==========
 
 [![CI](https://github.com/tueda/tinymt-cpp/workflows/CI/badge.svg?branch=master)](https://github.com/tueda/tinymt-cpp/actions?query=branch%3Amaster)
-[![codecov](https://codecov.io/gh/tueda/tinymt-cpp/branch/master/graph/badge.svg?token=RXT09V4NIP)](https://codecov.io/gh/tueda/tinymt-cpp/branch/master)
+[![codecov](https://codecov.io/gh/tueda/tinymt-cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/tueda/tinymt-cpp/branch/master)
 
 A C++11 header-only implementation of the
 [TinyMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/TINYMT/index.html)
