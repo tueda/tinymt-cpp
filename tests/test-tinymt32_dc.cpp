@@ -7,18 +7,21 @@ using namespace tinymt;
 
 // Parameter sets taken from https://github.com/jj1bdx/tinymtdc-longbatch/.
 
-constexpr tinymt32_dc::parameter_set_type id1 = {0xda251b45, 0xfed0ffb5,
-                                                 0x9b5cf7ff};
+// tinymt32dc.0.1048576.txt.1, i.e., RFC 8682
+constexpr tinymt32_dc::param_type id0 = {0x8f7011eeU, 0xfc78ff1fU, 0x3793fdffU};
 
-constexpr tinymt32_dc::parameter_set_type id2 = {0xf20d1e43, 0xff90ffe5,
-                                                 0xdd372f7f};
+// tinymt32dc.1.1048576.txt:1
+constexpr tinymt32_dc::param_type id1 = {0xda251b45U, 0xfed0ffb5U, 0x9b5cf7ffU};
+
+// tinymt32dc.2.1048576.txt:1
+constexpr tinymt32_dc::param_type id2 = {0xf20d1e43U, 0xff90ffe5U, 0xdd372f7fU};
 
 TEST_CASE("range") {
   std::size_t w = tinymt32_dc::word_size;
   CHECK(w == 32);
 
   CHECK(tinymt32_dc::min() == 0);
-  CHECK(tinymt32_dc::max() == 0xffffffff);
+  CHECK(tinymt32_dc::max() == 0xffffffffU);
 }
 
 TEST_CASE("seed") {
@@ -75,7 +78,7 @@ TEST_CASE("equals2") {
   CHECK(r1 != r2);
 }
 
-TEST_CASE("serialize") {
+TEST_CASE("serialize1") {
   stringstream buf;
 
   tinymt32_dc r1(id1);
@@ -85,6 +88,22 @@ TEST_CASE("serialize") {
   tinymt32::result_type x1 = r1();
 
   tinymt32_dc r2(id2);
+  buf >> r2;
+  tinymt32::result_type x2 = r2();
+
+  CHECK(x1 == x2);
+}
+
+TEST_CASE("serialize2") {
+  stringstream buf;
+
+  tinymt32_dc r1(id0);
+  r1();
+  r1();
+  buf << r1;
+  tinymt32_dc::result_type x1 = r1();
+
+  tinymt32 r2;
   buf >> r2;
   tinymt32::result_type x2 = r2();
 

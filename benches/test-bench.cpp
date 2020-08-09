@@ -45,14 +45,17 @@ void bench_gen_gauss(Bench& bench, const Rng& rng, const char* name) {
   });
 }
 
-#define bench_set(b, bench_func)                                   \
-  do {                                                             \
-    bench_func(b, tinymt32(), "tinymt::tinymt32");                 \
-    bench_func(b, tinymt32_dc(tinymt32_dc::default_parameter_set), \
-               "tinymt::tinymt32_dc");                             \
-    bench_func(b, mt19937(), "std::mt19937");                      \
-    bench_func(b, mt19937_64(), "std::mt19937_64");                \
-                                                                   \
+#define bench_set(b, bench_func)                                           \
+  do {                                                                     \
+    bench_func(b, tinymt32(), "tinymt::tinymt32");                         \
+    bench_func(b,                                                          \
+               tinymt32_dc({tinymt::detail::tinymt32_default_param_mat1,   \
+                            tinymt::detail::tinymt32_default_param_mat2,   \
+                            tinymt::detail::tinymt32_default_param_tmat}), \
+               "tinymt::tinymt32_dc");                                     \
+    bench_func(b, mt19937(), "std::mt19937");                              \
+    bench_func(b, mt19937_64(), "std::mt19937_64");                        \
+                                                                           \
   } while (false)
 
 int main() {

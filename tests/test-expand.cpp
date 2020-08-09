@@ -3,9 +3,9 @@
 #include <tinymt/tinymt.h>
 
 template class tinymt::tinymt_engine<
-    std::uint_fast32_t, 32, tinymt::tinymt32_dc::default_parameter_set.mat1,
-    tinymt::tinymt32_dc::default_parameter_set.mat2,
-    tinymt::tinymt32_dc::default_parameter_set.tmat>;
+    std::uint_fast32_t, 32, tinymt::detail::tinymt32_default_param_mat1,
+    tinymt::detail::tinymt32_default_param_mat2,
+    tinymt::detail::tinymt32_default_param_tmat>;
 
 template class tinymt::tinymt_engine<std::uint_fast32_t, 32, 0, 0, 0>;
 

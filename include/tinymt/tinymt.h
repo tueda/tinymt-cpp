@@ -47,19 +47,46 @@
 #include <ostream>
 #include <type_traits>
 
-#define TINYMT_CPP_ENABLE(condition)                                        \
+/**
+ * Macro to enable/disable function via SFINAE.
+ *
+ * @param condition condition to enable the function
+ */
+#define TINYMT_CPP_ENABLE(...)                                              \
   typename TINYMT_CPP_ENABLE_T_ = std::nullptr_t,                           \
            typename std::enable_if < std::is_same<TINYMT_CPP_ENABLE_T_,     \
                                                   std::nullptr_t>::value && \
-               (condition),                                                 \
+               (__VA_ARGS__),                                               \
            std::nullptr_t > ::type = nullptr
 
+/**
+ * Namespace for classes that implement the TinyMT algorithms.
+ */
 namespace tinymt {
 
+/**
+ * Internal details. May be incompatibly changed in future. Applications should
+ * not rely on these details.
+ */
 namespace detail {
 
-// Status.
+constexpr uint_least32_t tinymt32_default_param_mat1 = 0x8f7011eeU;
+constexpr uint_least32_t tinymt32_default_param_mat2 = 0xfc78ff1fU;
+constexpr uint_least32_t tinymt32_default_param_tmat = 0x3793fdffU;
 
+/**
+ * Generator's parameter set.
+ */
+template <class UIntType>
+struct tinymt_engine_param {
+  UIntType mat1;
+  UIntType mat2;
+  UIntType tmat;
+};
+
+/**
+ * Generator's state and parameter set.
+ */
 template <class UIntType, std::size_t WordSize, std::uintmax_t Mat1,
           std::uintmax_t Mat2, std::uintmax_t TMat>
 struct tinymt_engine_status;
@@ -72,60 +99,106 @@ struct tinymt_engine_status<UIntType, 32, Mat1, Mat2, TMat> {
   static constexpr result_type mat1 = Mat1;
   static constexpr result_type mat2 = Mat2;
   static constexpr result_type tmat = TMat;
-  static constexpr std::size_t state_size = 4;
-  static constexpr std::uintmax_t word_mask = 0xffffffff;  // 2^32 - 1
-  static constexpr std::uintmax_t mask = 0x7fffffff;       // 2^31 - 1
   struct is_dynamic : std::false_type {};
 };
 
 template <class UIntType>
-struct tinymt_engine_status<UIntType, 32, 0, 0, 0> {
+struct tinymt_engine_status<UIntType, 32, 0, 0, 0>
+    : tinymt_engine_param<UIntType> {
   using result_type = UIntType;
   std::array<result_type, 4> status;
-  result_type mat1;
-  result_type mat2;
-  result_type tmat;
-  static constexpr std::size_t state_size = 4;
-  static constexpr std::uintmax_t word_mask = 0xffffffff;  // 2^32 - 1
-  static constexpr std::uintmax_t mask = 0x7fffffff;       // 2^31 - 1
   struct is_dynamic : std::true_type {};
 };
 
-// Parameter set.
+template <class CharT, class Traits, class UIntType, std::size_t WordSize,
+          std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat>
+inline std::basic_ostream<CharT, Traits>& operator<<(
+    std::basic_ostream<CharT, Traits>& os,
+    const tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
+  using state_type = tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>;
+  os << s.status[0];
+  for (std::size_t i = 1; i < s.status.size(); i++) {
+    os << ' ' << s.status[i];
+  }
+  if (state_type::is_dynamic::value) {
+    os << ' ' << s.mat1;
+    os << ' ' << s.mat2;
+    os << ' ' << s.tmat;
+  }
+  return os;
+}
 
-template <class UIntType>
-struct tinymt_engine_parameter_set {
-  UIntType mat1;
-  UIntType mat2;
-  UIntType tmat;
-};
+template <
+    class CharT, class Traits, class UIntType, std::size_t WordSize,
+    std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat,
+    TINYMT_CPP_ENABLE(!tinymt_engine_status<UIntType, WordSize, Mat1, Mat2,
+                                            TMat>::is_dynamic::value)>
+inline std::basic_istream<CharT, Traits>& operator>>(
+    std::basic_istream<CharT, Traits>& is,
+    tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
+  for (std::size_t i = 0; i < s.status.size(); i++) {
+    is >> s.status[i] >> std::ws;
+  }
+  return is;
+}
 
-// Methods.
+template <class CharT, class Traits, class UIntType, std::size_t WordSize,
+          std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat,
+          TINYMT_CPP_ENABLE(tinymt_engine_status<UIntType, WordSize, Mat1, Mat2,
+                                                 TMat>::is_dynamic::value)>
+inline std::basic_istream<CharT, Traits>& operator>>(
+    std::basic_istream<CharT, Traits>& is,
+    tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
+  for (std::size_t i = 0; i < s.status.size(); i++) {
+    is >> s.status[i] >> std::ws;
+  }
+  is >> s.mat1 >> std::ws;
+  is >> s.mat2 >> std::ws;
+  is >> s.tmat >> std::ws;
+  return is;
+}
 
+/**
+ * Core implementation of the TinyMT algorithms.
+ */
 template <class UIntType, std::size_t WordSize, std::uintmax_t Mat1,
-          std::uintmax_t Mat2, std::uintmax_t TMat>
-struct tinymt_engine_methods;
+          std::uintmax_t Mat2, std::uintmax_t TMat, bool DoPeriodCertification>
+struct tinymt_engine_impl;
 
 template <class UIntType, std::uintmax_t Mat1, std::uintmax_t Mat2,
-          std::uintmax_t TMat>
-struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
+          std::uintmax_t TMat, bool DoPeriodCertification>
+struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
+                          DoPeriodCertification> {
   using result_type = UIntType;
   using status_type = tinymt_engine_status<UIntType, 32, Mat1, Mat2, TMat>;
-  using parameter_set_type = detail::tinymt_engine_parameter_set<UIntType>;
+  using param_type = detail::tinymt_engine_param<UIntType>;
+
+  static constexpr std::size_t state_size = 4;
+  static constexpr std::uintmax_t max = 0xffffffffU;
 
   static constexpr std::size_t sh0 = 1;
   static constexpr std::size_t sh1 = 10;
   static constexpr std::size_t sh8 = 8;
-  static constexpr result_type mask32 =
-      static_cast<result_type>(status_type::word_mask);
-  static constexpr result_type mask =
-      static_cast<result_type>(status_type::mask);
-  static constexpr parameter_set_type default_parameter_set = {
-      0x8f7011ee, 0xfc78ff1f, 0x3793fdff};
+
+  static constexpr result_type word_mask = static_cast<result_type>(max);
+  static constexpr result_type mask32 = word_mask;
+  static constexpr result_type mask = 0x7fffffffU;
+
+  static void period_certification(status_type& s) {
+    if ((s.status[0] & mask) == 0 && s.status[1] == 0 && s.status[2] == 0 &&
+        s.status[3] == 0) {
+      s.status[0] = 'T';
+      s.status[1] = 'I';
+      s.status[2] = 'N';
+      s.status[3] = 'Y';
+    }
+  }
 
   static void init(status_type& s, result_type seed) {
     const unsigned int MIN_LOOP = 8;
     const unsigned int PRE_LOOP = 8;
+
+    // Assume that mat1, mat2, tmat have been suitably initialized.
 
     s.status[0] = seed & mask32;
     s.status[1] = s.mat1;
@@ -136,6 +209,10 @@ struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
       s.status[i & 3] ^= i + 1812433253 * (s.status[(i - 1) & 3] ^
                                            (s.status[(i - 1) & 3] >> 30));
       s.status[i & 3] &= mask32;
+    }
+
+    if (DoPeriodCertification) {
+      period_certification(s);
     }
 
     for (unsigned int i = 0; i < PRE_LOOP; i++) {
@@ -171,72 +248,144 @@ struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
 
 }  // namespace detail
 
-// Main class.
-
-template <class UIntType, size_t WordSize, UIntType Mat1, UIntType Mat2,
-          UIntType TMat>
+/**
+ * Pseudo-random number generator engine based on the TinyMT algorithms.
+ *
+ * @tparam UIntType unsigned integral type generated by the engine
+ * @tparam WordSize word size for the generated numbers
+ * @tparam Mat1     parameter used in the linear state transition function
+ * @tparam Mat2     parameter used in the linear state transition function
+ * @tparam TMat     parameter used in the non-linear output function
+ * @tparam DoPeriodCertification whether or not period certification is
+ * performed in initialization
+ *
+ * @note Currently `WordSize` must be `32`.
+ * @note When `Mat`, `Mat2` and `TMat` are all zero, the generator parameter set
+ * must be provided in initialization ("Dynamic Creation" (DC) mode).
+ */
+template <class UIntType, std::size_t WordSize, UIntType Mat1, UIntType Mat2,
+          UIntType TMat, bool DoPeriodCertification = true>
 class tinymt_engine {
   static_assert(std::is_unsigned<UIntType>::value,
                 "result_type must be an unsigned integral type");
   static_assert(WordSize == 32, "word_size must be 32");
 
-  using methods =
-      detail::tinymt_engine_methods<UIntType, WordSize, Mat1, Mat2, TMat>;
+  using impl = detail::tinymt_engine_impl<UIntType, WordSize, Mat1, Mat2, TMat,
+                                          DoPeriodCertification>;
   using status_type =
       detail::tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>;
 
-  static_assert(std::numeric_limits<UIntType>::max() >= status_type::word_mask,
+  static_assert(std::numeric_limits<UIntType>::max() >= impl::max,
                 "size of result_type must be lager than word_size");
-  static_assert(Mat1 <= status_type::word_mask, "Mat1 must be < 2^word_size");
-  static_assert(Mat2 <= status_type::word_mask, "Mat2 must be < 2^word_size");
-  static_assert(TMat <= status_type::word_mask, "TMat must be < 2^word_size");
+  static_assert(Mat1 <= impl::max, "Mat1 must be < 2^word_size");
+  static_assert(Mat2 <= impl::max, "Mat2 must be < 2^word_size");
+  static_assert(TMat <= impl::max, "TMat must be < 2^word_size");
 
   status_type s_;
 
  public:
+  /**
+   * Integral type generated by the engine.
+   */
   using result_type = UIntType;
-  using parameter_set_type = detail::tinymt_engine_parameter_set<UIntType>;
-  static constexpr std::size_t word_size = WordSize;
-  static constexpr std::size_t state_size = status_type::state_size;
-  static constexpr result_type default_seed = 1;
-  static constexpr parameter_set_type default_parameter_set =
-      methods::default_parameter_set;
-
-  template <TINYMT_CPP_ENABLE(!status_type::is_dynamic::value)>
-  explicit tinymt_engine(result_type seed = default_seed) {
-    methods::init(s_, seed);
-  }
-
-  template <TINYMT_CPP_ENABLE(status_type::is_dynamic::value)>
-  explicit tinymt_engine(const parameter_set_type& params,
-                         result_type seed = default_seed) {
-    s_.mat1 = params.mat1 & status_type::word_mask;
-    s_.mat2 = params.mat2 & status_type::word_mask;
-    s_.tmat = params.tmat & status_type::word_mask;
-    methods::init(s_, seed);
-  }
-
-  void seed(result_type value = default_seed) { methods::init(s_, value); }
 
   /**
-   * @note The use of `unsigned long long` is intentional, following the
-   * standard library and the Boost library.
+   * Type of the generator parameter set.
    */
+  using param_type = typename impl::param_type;
+
+  /**
+   * Word size that determines the range of numbers generated by the engine.
+   */
+  static constexpr std::size_t word_size = WordSize;
+
+  /**
+   * Word size used for a state of the generator.
+   */
+  static constexpr std::size_t state_size = impl::state_size;
+
+  /**
+   * Default seed.
+   */
+  static constexpr result_type default_seed = 1;
+
+  /**
+   * Constructs the engine (non-DC).
+   *
+   * @param seed random seed
+   */
+  template <TINYMT_CPP_ENABLE(!status_type::is_dynamic::value)>
+  explicit tinymt_engine(result_type seed = default_seed) {
+    impl::init(s_, seed);
+  }
+
+  /**
+   * Constructs the engine (DC).
+   *
+   * @param param parameter set
+   * @param seed random seed
+   */
+  template <TINYMT_CPP_ENABLE(status_type::is_dynamic::value)>
+  explicit tinymt_engine(const param_type& param,
+                         result_type seed = default_seed) {
+    s_.mat1 = param.mat1 & impl::word_mask;
+    s_.mat2 = param.mat2 & impl::word_mask;
+    s_.tmat = param.tmat & impl::word_mask;
+    impl::init(s_, seed);
+  }
+
+  /**
+   * Reinitializes the engine.
+   *
+   * @param seed random seed
+   */
+  void seed(result_type value = default_seed) { impl::init(s_, value); }
+
+  /**
+   * Advances the state of the engine by the given amount.
+   *
+   * @param z number of advances
+   */
+  // Note: the use of `unsigned long long` is intentional, following the
+  // standard library and the Boost library.
   void discard(unsigned long long z) {            // NOLINT
     for (unsigned long long i = 0; i < z; i++) {  // NOLINT
-      methods::next_state(s_);
+      impl::next_state(s_);
     }
   }
 
+  /**
+   * Returns the smallest possible value in the output range.
+   *
+   * @return smallest value
+   */
   static constexpr result_type min() { return 0; }
 
-  static constexpr result_type max() { return status_type::word_mask; }
+  /**
+   * Returns the largest possible value in the output range.
+   *
+   * @return largest value
+   */
+  static constexpr result_type max() { return impl::max; }
 
+  /**
+   * Returns the next pseudo-random number.
+   *
+   * @return generated value
+   */
   result_type operator()() {
-    methods::next_state(s_);
-    return methods::temper(s_);
+    impl::next_state(s_);
+    return impl::temper(s_);
   }
 
+  /**
+   * Compares two engines.
+   *
+   * @param a first engine
+   * @param b second engine
+   * @return `true` if the engines are equivalent including their internal
+   * states, `false` otherwise
+   */
   friend bool operator==(const tinymt_engine& a, const tinymt_engine& b) {
     if (a.s_.mat1 != b.s_.mat1 || a.s_.mat2 != b.s_.mat2 ||
         a.s_.tmat != b.s_.tmat) {
@@ -250,55 +399,57 @@ class tinymt_engine {
     return true;
   }
 
+  /**
+   * Compares two engines.
+   *
+   * @param a first engine
+   * @param b second engine
+   * @return `true` if the engines are not equivalent including their internal
+   * states, `false` otherwise
+   */
   friend bool operator!=(const tinymt_engine& a, const tinymt_engine& b) {
     return !(a == b);
   }
 
+  /**
+   * Serializes the state of the given engine into a stream.
+   *
+   * @param os output stream
+   * @param e  engine to be serialized
+   * @return `os`
+   */
   template <class CharT, class Traits>
   friend std::basic_ostream<CharT, Traits>& operator<<(
-      std::basic_ostream<CharT, Traits>& os, const tinymt_engine& a) {
-    os << a.s_.status[0];
-    for (std::size_t i = 1; i < a.state_size; i++) {
-      os << ' ' << a.s_.status[i];
-    }
-    if (status_type::is_dynamic::value) {
-      os << ' ' << a.s_.mat1;
-      os << ' ' << a.s_.mat2;
-      os << ' ' << a.s_.tmat;
-    }
-    return os;
+      std::basic_ostream<CharT, Traits>& os, const tinymt_engine& e) {
+    return os << e.s_;
   }
 
-  template <class CharT, class Traits, class T = result_type,
-            TINYMT_CPP_ENABLE(!status_type::is_dynamic::value)>
+  /**
+   * Deserializes the state of the given engine from a stream.
+   *
+   * @param is input stream
+   * @param e  engine to be deserialized
+   * @return `is`
+   */
+  template <class CharT, class Traits>
   friend std::basic_istream<CharT, Traits>& operator>>(
-      std::basic_istream<CharT, Traits>& is, tinymt_engine& a) {
-    for (std::size_t i = 0; i < a.state_size; i++) {
-      is >> a.s_.status[i] >> std::ws;
-    }
-    return is;
-  }
-
-  template <class CharT, class Traits, class T = result_type,
-            TINYMT_CPP_ENABLE(status_type::is_dynamic::value)>
-  friend std::basic_istream<CharT, Traits>& operator>>(
-      std::basic_istream<CharT, Traits>& is, tinymt_engine& a) {
-    for (std::size_t i = 0; i < a.state_size; i++) {
-      is >> a.s_.status[i] >> std::ws;
-    }
-    is >> a.s_.mat1 >> std::ws;
-    is >> a.s_.mat2 >> std::ws;
-    is >> a.s_.tmat >> std::ws;
-    return is;
+      std::basic_istream<CharT, Traits>& is, tinymt_engine& e) {
+    return is >> e.s_;
   }
 };
 
-using tinymt32_dc = tinymt_engine<uint_fast32_t, 32, 0, 0, 0>;
-
+/**
+ * TinyMT32 generator engine with the parameter set specified in RFC 8682.
+ */
 using tinymt32 =
-    tinymt_engine<uint_fast32_t, 32, tinymt32_dc::default_parameter_set.mat1,
-                  tinymt32_dc::default_parameter_set.mat2,
-                  tinymt32_dc::default_parameter_set.tmat>;
+    tinymt_engine<uint_fast32_t, 32, detail::tinymt32_default_param_mat1,
+                  detail::tinymt32_default_param_mat2,
+                  detail::tinymt32_default_param_tmat, false>;
+
+/**
+ * TinyMT32 generator engine with "Dynamic Creation" of its parameter set.
+ */
+using tinymt32_dc = tinymt_engine<uint_fast32_t, 32, 0, 0, 0, true>;
 
 }  // namespace tinymt
 
