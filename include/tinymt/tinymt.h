@@ -39,6 +39,7 @@
 #ifndef TINYMT_TINYMT_H
 #define TINYMT_TINYMT_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <istream>
@@ -67,26 +68,26 @@ template <class UIntType, std::uintmax_t Mat1, std::uintmax_t Mat2,
           std::uintmax_t TMat>
 struct tinymt_engine_status<UIntType, 32, Mat1, Mat2, TMat> {
   using result_type = UIntType;
-  result_type status[4];
+  std::array<result_type, 4> status;
   static constexpr result_type mat1 = Mat1;
   static constexpr result_type mat2 = Mat2;
   static constexpr result_type tmat = TMat;
   static constexpr std::size_t state_size = 4;
-  static constexpr std::uintmax_t word_mask = 0xffffffffu;  // 2^32 - 1
-  static constexpr std::uintmax_t mask = 0x7fffffffu;       // 2^31 - 1
+  static constexpr std::uintmax_t word_mask = 0xffffffff;  // 2^32 - 1
+  static constexpr std::uintmax_t mask = 0x7fffffff;       // 2^31 - 1
   struct is_dynamic : std::false_type {};
 };
 
 template <class UIntType>
 struct tinymt_engine_status<UIntType, 32, 0, 0, 0> {
   using result_type = UIntType;
-  result_type status[4];
+  std::array<result_type, 4> status;
   result_type mat1;
   result_type mat2;
   result_type tmat;
   static constexpr std::size_t state_size = 4;
-  static constexpr std::uintmax_t word_mask = 0xffffffffu;  // 2^32 - 1
-  static constexpr std::uintmax_t mask = 0x7fffffffu;       // 2^31 - 1
+  static constexpr std::uintmax_t word_mask = 0xffffffff;  // 2^32 - 1
+  static constexpr std::uintmax_t mask = 0x7fffffff;       // 2^31 - 1
   struct is_dynamic : std::true_type {};
 };
 
@@ -217,8 +218,12 @@ class tinymt_engine {
 
   void seed(result_type value = default_seed) { methods::init(s_, value); }
 
-  void discard(unsigned long long z) {
-    for (unsigned long long i = 0; i < z; i++) {
+  /**
+   * @note The use of `unsigned long long` is intentional, following the
+   * standard library and the Boost library.
+   */
+  void discard(unsigned long long z) {            // NOLINT
+    for (unsigned long long i = 0; i < z; i++) {  // NOLINT
       methods::next_state(s_);
     }
   }

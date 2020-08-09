@@ -18,7 +18,7 @@ TEST_CASE("range") {
   CHECK(w == 32);
 
   CHECK(tinymt32_dc::min() == 0);
-  CHECK(tinymt32_dc::max() == 0xffffffffu);
+  CHECK(tinymt32_dc::max() == 0xffffffff);
 }
 
 TEST_CASE("seed") {
