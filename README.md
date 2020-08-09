@@ -13,8 +13,8 @@ Development
 -----------
 
 ```bash
-# Prerequisites.
-brew install clang-format cmake doxygen gcc lcov pre-commit
+# Prerequisites (including optional ones)
+brew install cmake doxygen gcc lcov llvm pre-commit
 
 # Pre-commit hooks.
 pre-commit install
@@ -39,10 +39,15 @@ genhtml -o build/coverage/html build/coverage/coverage.info
 cmake -S . -B build/sanitizer -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
 cmake --build build/sanitizer --target check
 
+# Clang-Tidy.
+cmake -S . -B build/clang-tidy -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=YES
+cmake --build build/clang-tidy --target check
+
 # Benchmarking.
 cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release
 cmake --build build/release --target bench
 ```
+
 
 License
 -------

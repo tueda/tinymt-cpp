@@ -100,6 +100,14 @@ if(NOT_SUBPROJECT)
       message(STATUS "Compiler sanitizers require Debug build type")
     endif()
   endif()
+
+  # Clang-Tidy.
+
+  option(USE_CLANG_TIDY "Enable Clang-Tidy" OFF)
+
+  if(USE_CLANG_TIDY)
+    set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+  endif()
 endif()
 
 if((NOT_SUBPROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)

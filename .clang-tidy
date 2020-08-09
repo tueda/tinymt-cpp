@@ -1,0 +1,31 @@
+# cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers
+#   The algorithms contain many fixed magic numbers. Replacing them by named
+#   constants (maybe defined in a different place) would spoil the readability.
+# -cppcoreguidelines-pro-bounds-constant-array-index
+#   This check makes a big difference from the original codebase.
+# -modernize-use-trailing-return-type
+#   This check aggressively tries to change even the (legitimate) main function,
+#   which in this case is purely stylistic.
+
+Checks: >-
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  clang-diagnostic-*,
+  cppcoreguidelines-*,
+  google-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+CheckOptions:
+  - key:   cppcoreguidelines-macro-usage.AllowedRegexp
+    value: ^(DEBUG_|TINYMT_CPP_)
+HeaderFilterRegex: /include/tinymt/
+WarningsAsErrors: '*'
