@@ -29,18 +29,18 @@ cmake --build build/debug --target check
 cmake --build build/debug --target doc
 
 # Code coverage.
-cmake -S . -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
+cmake -S . -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=ON
 lcov -z -d build/coverage
 cmake --build build/coverage --target check
 lcov -c -d build/coverage -o build/coverage/coverage.info
 genhtml -o build/coverage/html build/coverage/coverage.info
 
 # Compiler sanitizers.
-cmake -S . -B build/sanitizer -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
+cmake -S . -B build/sanitizer -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=ON
 cmake --build build/sanitizer --target check
 
 # Clang-Tidy.
-cmake -S . -B build/clang-tidy -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=YES
+cmake -S . -B build/clang-tidy -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=ON
 cmake --build build/clang-tidy --target check
 
 # Benchmarking.
