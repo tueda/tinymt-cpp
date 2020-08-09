@@ -15,6 +15,13 @@ jobs:
       - run: pip install gitlint pre-commit
       - run: gitlint
       - run: pre-commit run --all-files
+  clang-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: sudo apt-get install -y clang-tidy
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=YES
+      - run: cmake --build build --target test-include.exe test-expand.exe
   doc:
     runs-on: ubuntu-latest
     steps:
