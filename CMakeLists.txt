@@ -25,20 +25,35 @@ if(NOT_SUBPROJECT)
 
   # Additional compiler flags for testing.
 
+  set(CMAKE_CXX_EXTENSIONS OFF)
+
   include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag("-Wall -Wextra" CXX_HAS_ALL_WARNING_FLAG)
-  if(CXX_HAS_ALL_WARNING_FLAG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+  macro(TRY_CXX_COMPILER_FLAG flag var)
+    check_cxx_compiler_flag(${flag} ${var})
+    if(${var})
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+    endif()
+  endmacro()
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    try_cxx_compiler_flag("-Weverything -Wno-c++98-compat-pedantic"
+                          CXX_HAS_WARN_EVERYTHING_FLAG)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    try_cxx_compiler_flag("/W4" CXX_HAS_W4_FLAG)
+    try_cxx_compiler_flag("/WX" CXX_HAS_WX_FLAG)
+  else()
+    # GCC.
+    try_cxx_compiler_flag("-Wall -Wextra" CXX_HAS_WARN_ALL_AND_EXTRA_FLAG)
+    try_cxx_compiler_flag("-Wshadow" CXX_HAS_WARN_SHADOW_FLAG)
+    try_cxx_compiler_flag("-Wold-style-cast" CXX_HAS_WARN_OLD_STYLE_CAST_FLAG)
+    try_cxx_compiler_flag("-Wsign-conversion" CXX_HAS_WARN_SIGN_CONVERSION_FLAG)
   endif()
 
-  check_cxx_compiler_flag("-Wshadow" CXX_HAS_SHADOW_FLAG)
-  if(CXX_HAS_SHADOW_FLAG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
-  endif()
-
-  check_cxx_compiler_flag("-pedantic" CXX_HAS_PEDANTIC_FLAG)
-  if(CXX_HAS_PEDANTIC_FLAG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+  if(NOT (CMAKE_CXX_COMPILER_ID MATCHES "MSVC"))
+    # GCC or Clang.
+    try_cxx_compiler_flag("-Werror" CXX_HAS_ERROR_FLAG)
+    try_cxx_compiler_flag("-pedantic" CXX_HAS_PEDANTIC_FLAG)
+    try_cxx_compiler_flag("-pedantic-errors" CXX_HAS_PEDANTIC_ERRORS_FLAG)
   endif()
 
   # Document generation.
