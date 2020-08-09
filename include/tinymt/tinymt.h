@@ -115,27 +115,29 @@ struct tinymt_engine_methods<UIntType, 32, Mat1, Mat2, TMat> {
   static constexpr std::size_t sh0 = 1;
   static constexpr std::size_t sh1 = 10;
   static constexpr std::size_t sh8 = 8;
-  static constexpr result_type mask32 = (result_type)status_type::word_mask;
-  static constexpr result_type mask = (result_type)status_type::mask;
+  static constexpr result_type mask32 =
+      static_cast<result_type>(status_type::word_mask);
+  static constexpr result_type mask =
+      static_cast<result_type>(status_type::mask);
   static constexpr parameter_set_type default_parameter_set = {
       0x8f7011ee, 0xfc78ff1f, 0x3793fdff};
 
   static void init(status_type& s, result_type seed) {
-    const int MIN_LOOP = 8;
-    const int PRE_LOOP = 8;
+    const unsigned int MIN_LOOP = 8;
+    const unsigned int PRE_LOOP = 8;
 
     s.status[0] = seed & mask32;
     s.status[1] = s.mat1;
     s.status[2] = s.mat2;
     s.status[3] = s.tmat;
 
-    for (int i = 1; i < MIN_LOOP; i++) {
+    for (unsigned int i = 1; i < MIN_LOOP; i++) {
       s.status[i & 3] ^= i + 1812433253 * (s.status[(i - 1) & 3] ^
                                            (s.status[(i - 1) & 3] >> 30));
       s.status[i & 3] &= mask32;
     }
 
-    for (int i = 0; i < PRE_LOOP; i++) {
+    for (unsigned int i = 0; i < PRE_LOOP; i++) {
       next_state(s);
     }
   }
