@@ -52,7 +52,10 @@ pre-commit run --all-files
 # Tests.
 cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/debug --target check
-cmake --build build/debug --target doc
+
+# Documents.
+cmake -S . -B build/docs -DBUILD_TESTING=OFF
+cmake --build build/docs --target doc
 
 # Code coverage.
 cmake -S . -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=ON
