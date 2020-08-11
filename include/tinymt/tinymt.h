@@ -115,16 +115,25 @@ template <class CharT, class Traits, class UIntType, std::size_t WordSize,
 inline std::basic_ostream<CharT, Traits>& operator<<(
     std::basic_ostream<CharT, Traits>& os,
     const tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
-  using state_type = tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>;
-  os << s.status[0];
-  for (std::size_t i = 1; i < s.status.size(); i++) {
-    os << ' ' << s.status[i];
+  using status_type =
+      tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>;
+
+  bool first = true;
+  for (const auto& x : s.status) {
+    if (first) {
+      first = false;
+    } else {
+      os << ' ';
+    }
+    os << x;
   }
-  if (state_type::is_dynamic::value) {
+
+  if (status_type::is_dynamic::value) {
     os << ' ' << s.mat1;
     os << ' ' << s.mat2;
     os << ' ' << s.tmat;
   }
+
   return os;
 }
 
@@ -136,8 +145,8 @@ template <
 inline std::basic_istream<CharT, Traits>& operator>>(
     std::basic_istream<CharT, Traits>& is,
     tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
-  for (std::size_t i = 0; i < s.status.size(); i++) {
-    is >> s.status[i] >> std::ws;
+  for (auto& x : s.status) {
+    is >> x >> std::ws;
   }
   return is;
 }
@@ -149,8 +158,8 @@ template <class CharT, class Traits, class UIntType, std::size_t WordSize,
 inline std::basic_istream<CharT, Traits>& operator>>(
     std::basic_istream<CharT, Traits>& is,
     tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
-  for (std::size_t i = 0; i < s.status.size(); i++) {
-    is >> s.status[i] >> std::ws;
+  for (auto& x : s.status) {
+    is >> x >> std::ws;
   }
   is >> s.mat1 >> std::ws;
   is >> s.mat2 >> std::ws;
@@ -391,12 +400,7 @@ class tinymt_engine {
         a.s_.tmat != b.s_.tmat) {
       return false;
     }
-    for (std::size_t i = 0; i < a.state_size; i++) {
-      if (a.s_.status[i] != b.s_.status[i]) {
-        return false;
-      }
-    }
-    return true;
+    return a.s_.status == b.s_.status;
   }
 
   /**
