@@ -2,7 +2,9 @@ tinymt-cpp
 ==========
 
 [![CI](https://github.com/tueda/tinymt-cpp/workflows/CI/badge.svg?branch=master)](https://github.com/tueda/tinymt-cpp/actions?query=branch%3Amaster)
-[![codecov](https://codecov.io/gh/tueda/tinymt-cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/tueda/tinymt-cpp/branch/master)
+[![Documentation Status](https://readthedocs.org/projects/tinymt-cpp/badge/?version=latest)](https://tinymt-cpp.readthedocs.io/en/latest/?badge=latest)
+[![Codecov](https://codecov.io/gh/tueda/tinymt-cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/tueda/tinymt-cpp/branch/master)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/tueda/tinymt-cpp.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tueda/tinymt-cpp/context:cpp)
 
 A C++11 header-only implementation of the
 [TinyMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/TINYMT/index.html)
