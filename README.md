@@ -9,6 +9,30 @@ A C++11 header-only implementation of the
 pseudo-random number generator.
 
 
+tinymt-cpp is a one-header-file library written in C++11, which implements
+a pseudo-random number generator engine based on the TinyMT algorithms. It can
+be used in the same way as random number generators in the standard library and
+combined with random number distributions.
+
+
+Example
+-------
+
+```cpp
+#include <iostream>
+#include <tinymt/tinymt.h>
+
+int main() {
+  tinymt::tinymt32 rng;
+
+  std::cout << rng() << std::endl;
+  std::cout << rng() << std::endl;
+
+  return 0;
+}
+```
+
+
 Development
 -----------
 
