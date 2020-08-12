@@ -12,40 +12,60 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - run: pip install gitlint pre-commit
-      - run: gitlint
-      - run: pre-commit run --all-files
+      - name: Install dependencies
+        run: pip install gitlint pre-commit
+      - name: Run linters
+        run: |
+          gitlint
+          pre-commit run --all-files
   clang-tidy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install -y clang-tidy
-      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=YES
-      - run: cmake --build build --target test-include.exe test-expand.exe
+      - name: Install dependencies
+        run: sudo apt-get install -y clang-tidy
+      - uses: lukka/run-cmake@v2
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=YES
+          buildWithCMakeArgs: --target test-include.exe test-expand.exe
   doc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install -y doxygen
-      - run: cmake -S . -B build -DBUILD_TESTING=OFF
-      - run: cmake --build build --target doc
+      - name: Install dependencies
+        run: sudo apt-get install -y doxygen
+      - uses: lukka/run-cmake@v2
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeAppendedArgs: -DBUILD_TESTING=OFF
+          buildWithCMakeArgs: --target doc
   coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
-      - run: cmake --build build --target check
+      - uses: lukka/run-cmake@v2
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
+          buildDirectory: _temp
+          buildWithCMakeArgs: --target check
       - uses: codecov/codecov-action@v1
   bench:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build --target check
-      - run: cmake --build build --target bench
+      - uses: lukka/run-cmake@v2
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Release
+          buildWithCMakeArgs: --target check bench
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
-      - run: cmake --build build --target check
+      - uses: lukka/run-cmake@v2
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
+          buildWithCMakeArgs: --target check
