@@ -50,7 +50,7 @@
 /**
  * Macro to enable/disable function via SFINAE.
  *
- * @param condition condition to enable the function
+ * @param ... condition to enable the function
  */
 #define TINYMT_CPP_ENABLE(...)                                              \
   typename TINYMT_CPP_ENABLE_T_ = std::nullptr_t,                           \
@@ -309,7 +309,7 @@ class tinymt_engine {
   static constexpr std::size_t word_size = WordSize;
 
   /**
-   * Word size used for a state of the generator.
+   * Size of the state of the generator in words.
    */
   static constexpr std::size_t state_size = impl::state_size;
 
@@ -346,7 +346,7 @@ class tinymt_engine {
   /**
    * Reinitializes the engine.
    *
-   * @param seed random seed
+   * @param value random seed
    */
   void seed(result_type value = default_seed) { impl::init(s_, value); }
 
