@@ -110,6 +110,25 @@ struct tinymt_engine_status<UIntType, 32, 0, 0, 0>
   struct is_dynamic : std::true_type {};
 };
 
+template <class UIntType1, class UIntType2, std::size_t WordSize,
+          std::uintmax_t Mat11, std::uintmax_t Mat12, std::uintmax_t Mat21,
+          std::uintmax_t Mat22, std::uintmax_t TMat1, std::uintmax_t TMat2>
+inline bool operator==(
+    const tinymt_engine_status<UIntType1, WordSize, Mat11, Mat21, TMat1>& a,
+    const tinymt_engine_status<UIntType2, WordSize, Mat12, Mat22, TMat2>& b) {
+  return a.mat1 == b.mat1 && a.mat2 == b.mat2 && a.tmat == b.tmat &&
+         a.status == b.status;
+}
+
+template <class UIntType1, class UIntType2, std::size_t WordSize,
+          std::uintmax_t Mat11, std::uintmax_t Mat12, std::uintmax_t Mat21,
+          std::uintmax_t Mat22, std::uintmax_t TMat1, std::uintmax_t TMat2>
+inline bool operator!=(
+    const tinymt_engine_status<UIntType1, WordSize, Mat11, Mat21, TMat1>& a,
+    const tinymt_engine_status<UIntType2, WordSize, Mat12, Mat22, TMat2>& b) {
+  return !(a == b);
+}
+
 template <class CharT, class Traits, class UIntType, std::size_t WordSize,
           std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat>
 inline std::basic_ostream<CharT, Traits>& operator<<(
@@ -396,11 +415,7 @@ class tinymt_engine {
    * states, `false` otherwise
    */
   friend bool operator==(const tinymt_engine& a, const tinymt_engine& b) {
-    if (a.s_.mat1 != b.s_.mat1 || a.s_.mat2 != b.s_.mat2 ||
-        a.s_.tmat != b.s_.tmat) {
-      return false;
-    }
-    return a.s_.status == b.s_.status;
+    return a.s_ == b.s_;
   }
 
   /**
@@ -412,7 +427,7 @@ class tinymt_engine {
    * states, `false` otherwise
    */
   friend bool operator!=(const tinymt_engine& a, const tinymt_engine& b) {
-    return !(a == b);
+    return a.s_ != b.s_;
   }
 
   /**
