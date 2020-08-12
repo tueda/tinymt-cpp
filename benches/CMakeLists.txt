@@ -15,7 +15,6 @@ FetchContent_Declare(
 FetchContent_GetProperties(nanobench)
 if(NOT nanobench_POPULATED)
   FetchContent_Populate(nanobench)
-  add_subdirectory(${nanobench_SOURCE_DIR} ${nanobench_BINARY_DIR})
 endif()
 
 function(tinymt_cpp_bench name)
