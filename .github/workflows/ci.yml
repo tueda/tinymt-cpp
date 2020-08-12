@@ -61,11 +61,23 @@ jobs:
           cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Release
           buildWithCMakeArgs: --target check bench
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: g++
+          - os: ubuntu-latest
+            compiler: clang++
+          - os: windows-latest
+            compiler: cl
+    runs-on: ${{ matrix.os }}
+    env:
+      CXX: ${{ matrix.compiler }}
     steps:
       - uses: actions/checkout@v2
       - uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
           cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
-          buildWithCMakeArgs: --target check
+          buildWithCMakeArgs: --config Debug --target check

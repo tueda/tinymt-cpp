@@ -3,7 +3,7 @@ if(NOT_SUBPROJECT)
   # latter is known not to update executables (cmake/cmake#8774).
   add_custom_target(
     check
-    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --output-on-failure
     COMMENT "Running tests")
 endif()
 
