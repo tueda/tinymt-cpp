@@ -10,7 +10,8 @@ include(FetchContent)
 FetchContent_Declare(
   nanobench
   GIT_REPOSITORY https://github.com/martinus/nanobench.git
-  GIT_TAG v4.0.2)
+  GIT_TAG v4.0.2
+  GIT_SHALLOW TRUE)
 FetchContent_GetProperties(nanobench)
 if(NOT nanobench_POPULATED)
   FetchContent_Populate(nanobench)
