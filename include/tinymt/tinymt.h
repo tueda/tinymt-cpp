@@ -98,6 +98,31 @@ constexpr uint_least32_t tinymt32_default_param_mat2 = 0xfc78ff1fU;
 constexpr uint_least32_t tinymt32_default_param_tmat = 0x3793fdffU;
 
 /**
+ * Checks whether the given integral type `T` (or its signed type) uses 2's
+ * complement for the signed integer representation.
+ */
+// This implementation must be probably almost portable; it covers 3 major
+// signed integer representations:
+//
+//                        (-1) & (1)   (-1) & (2)
+//   Two's complement              1            2
+//   One's complement              0            2
+//   Sign and magnitude            1            0
+//
+// Please point out if there is any compiler/system for which the following code
+// gives a wrong result and the compiler still implements the C++11 standard
+// correctly (possibly excess-K?).
+template <class T>
+struct is_twos_complement
+    : std::conditional<(typename std::make_signed<T>::type(-1) &
+                        typename std::make_signed<T>::type(1)) &&
+                           (typename std::make_signed<T>::type(-1) &
+                            typename std::make_signed<T>::type(2)),
+                       std::true_type, std::false_type>::type {
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+};
+
+/**
  * Generator's parameter set.
  */
 template <class UIntType>
@@ -272,6 +297,7 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     }
   }
 
+  template <TINYMT_CPP_ENABLE_WHEN(!is_twos_complement<result_type>::value)>
   static void next_state(status_type& s) {
     result_type x = (s.status[0] & mask) ^ s.status[1] ^ s.status[2];
     result_type y = s.status[3];
@@ -287,6 +313,21 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     }
   }
 
+  template <TINYMT_CPP_ENABLE_WHEN(is_twos_complement<result_type>::value)>
+  static void next_state(status_type& s) {
+    result_type x = (s.status[0] & mask) ^ s.status[1] ^ s.status[2];
+    result_type y = s.status[3];
+    x ^= (x << sh0) & mask32;
+    y ^= (y >> sh0) ^ x;
+    s.status[0] = s.status[1];
+    s.status[1] = s.status[2];
+    s.status[2] = (x ^ (y << sh1)) & mask32;
+    s.status[3] = y;
+    s.status[1] ^= (-(y & 1)) & s.mat1;
+    s.status[2] ^= (-(y & 1)) & s.mat2;
+  }
+
+  template <TINYMT_CPP_ENABLE_WHEN(!is_twos_complement<result_type>::value)>
   static result_type temper(const status_type& s) {
     result_type t0 = s.status[3];
     result_type t1 = s.status[0] + (s.status[2] >> sh8);
@@ -294,6 +335,15 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     if (t1 & 1) {
       t0 ^= s.tmat;
     }
+    return t0 & mask32;
+  }
+
+  template <TINYMT_CPP_ENABLE_WHEN(is_twos_complement<result_type>::value)>
+  static result_type temper(const status_type& s) {
+    result_type t0 = s.status[3];
+    result_type t1 = s.status[0] + (s.status[2] >> sh8);
+    t0 ^= t1;
+    t0 ^= (-(t1 & 1)) & s.tmat;
     return t0 & mask32;
   }
 };
