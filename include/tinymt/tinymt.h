@@ -1,5 +1,17 @@
 /*
- * tinymt.h
+ * tinymt.h (0.1.0-dev)
+ *
+ * A C++11 header-only implementation of the TinyMT pseudo-random number
+ * generator. The latest version and documentation can be found at:
+ *
+ *   https://github.com/tueda/tinymt-cpp
+ *
+ * This is based on and heavily influenced by the original code base written by
+ * Mutsuo Saito and Makoto Matsumoto, which is available at:
+ *
+ *   https://github.com/MersenneTwister-Lab/TinyMT
+ *
+ * =============================================================================
  *
  * Copyright (c) 2011, 2013 Mutsuo Saito, Makoto Matsumoto, Hiroshima University
  * and The University of Tokyo.
