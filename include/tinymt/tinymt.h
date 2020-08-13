@@ -283,6 +283,8 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     s.status[2] = s.mat2;
     s.status[3] = s.tmat;
 
+    // See Knuth TAOCP Vol2. 3rd Ed. p.106 for the multiplier.
+
     for (unsigned int i = 1; i < MIN_LOOP; i++) {
       s.status[i & 3] ^= i + 1812433253 * (s.status[(i - 1) & 3] ^
                                            (s.status[(i - 1) & 3] >> 30));
@@ -324,12 +326,12 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     s.status[1] = s.status[2];
     s.status[2] = (x ^ (y << sh1)) & mask32;
     s.status[3] = y;
-    s.status[1] ^=
-        static_cast<result_type>(-static_cast<signed_result_type>(y & 1)) &
-        s.mat1;
-    s.status[2] ^=
-        static_cast<result_type>(-static_cast<signed_result_type>(y & 1)) &
-        s.mat2;
+    // NOTE: the conditional branch in the portable version can be removed in
+    // the following way using negation in two's complement representation.
+    auto ymask =
+        static_cast<result_type>(-static_cast<signed_result_type>(y & 1));
+    s.status[1] ^= ymask & s.mat1;
+    s.status[2] ^= ymask & s.mat2;
   }
 
   template <TINYMT_CPP_ENABLE_WHEN(!is_twos_complement<result_type>::value)>
@@ -348,8 +350,11 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     result_type t0 = s.status[3];
     result_type t1 = s.status[0] + (s.status[2] >> sh8);
     t0 ^= t1;
-    t0 ^= static_cast<result_type>(-static_cast<signed_result_type>(t1 & 1)) &
-          s.tmat;
+    // NOTE: the conditional branch in the portable version can be removed in
+    // the following way using negation in two's complement representation.
+    auto t1mask =
+        static_cast<result_type>(-static_cast<signed_result_type>(t1 & 1));
+    t0 ^= t1mask & s.tmat;
     return t0 & mask32;
   }
 };
