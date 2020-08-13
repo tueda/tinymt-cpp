@@ -77,13 +77,24 @@
 namespace tinymt {
 
 /**
- * Internal details. May be incompatibly changed in future. Applications should
- * not rely on these details.
+ * Internal details. They may be incompatibly changed in future. Applications
+ * should not rely on these details.
  */
 namespace detail {
 
+/**
+ * Default parameter `mat1` of TinyMT32 specified in RFC 8682.
+ */
 constexpr uint_least32_t tinymt32_default_param_mat1 = 0x8f7011eeU;
+
+/**
+ * Default parameter `mat2` of TinyMT32 specified in RFC 8682.
+ */
 constexpr uint_least32_t tinymt32_default_param_mat2 = 0xfc78ff1fU;
+
+/**
+ * Default parameter `tmat` of TinyMT32 specified in RFC 8682.
+ */
 constexpr uint_least32_t tinymt32_default_param_tmat = 0x3793fdffU;
 
 /**
@@ -351,7 +362,7 @@ class tinymt_engine {
   static constexpr result_type default_seed = 1;
 
   /**
-   * Constructs the engine (non-DC).
+   * Constructs the engine (non-DC mode).
    *
    * @param seed random seed
    */
@@ -361,7 +372,7 @@ class tinymt_engine {
   }
 
   /**
-   * Constructs the engine (DC).
+   * Constructs the engine (DC mode).
    *
    * @param param parameter set
    * @param seed random seed
