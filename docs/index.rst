@@ -3,6 +3,7 @@
    :hidden:
 
    reference
+   changelog
 
 
 .. mdinclude:: ../README.md
