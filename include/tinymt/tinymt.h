@@ -100,6 +100,9 @@ constexpr uint_least32_t tinymt32_default_param_tmat = 0x3793fdffU;
 /**
  * Checks whether the given integral type `T` (or its signed type) uses 2's
  * complement for the signed integer representation.
+ *
+ * @note If `TINYMT_CPP_TWOS_COMPLEMENT` is defined, then its value overwrites
+ * the check and totally controls the result.
  */
 // This implementation must be probably almost portable; it covers 3 major
 // signed integer representations:
@@ -118,7 +121,14 @@ struct is_twos_complement
                         typename std::make_signed<T>::type(1)) &&
                            (typename std::make_signed<T>::type(-1) &
                             typename std::make_signed<T>::type(2)),
+#ifndef TINYMT_CPP_TWOS_COMPLEMENT
                        std::true_type, std::false_type>::type {
+#elif TINYMT_CPP_TWOS_COMPLEMENT
+                       std::true_type, std::true_type>::type {
+#else
+                       std::false_type, std::false_type>::type {
+#endif
+
   static_assert(std::is_integral<T>::value, "T must be an integral type");
 };
 

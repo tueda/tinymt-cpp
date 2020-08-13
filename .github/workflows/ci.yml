@@ -51,6 +51,19 @@ jobs:
           buildDirectory: _temp
           buildWithCMakeArgs: --target check
       - uses: codecov/codecov-action@v1
+  coverage-disable-twos-complement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: lukka/run-cmake@v2
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
+          buildDirectory: _temp
+          buildWithCMakeArgs: --target check
+        env:
+          CXXFLAGS: -DTINYMT_CPP_TWOS_COMPLEMENT=0
+      - uses: codecov/codecov-action@v1
   bench:
     runs-on: ubuntu-latest
     steps:
