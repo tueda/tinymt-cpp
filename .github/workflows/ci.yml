@@ -60,6 +60,8 @@ jobs:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
           cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Release
           buildWithCMakeArgs: --target check bench
+        env:
+          NANOBENCH_SUPPRESS_WARNINGS: 1
   test:
     strategy:
       fail-fast: false
