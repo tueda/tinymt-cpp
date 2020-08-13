@@ -64,11 +64,11 @@
  *
  * @param ... condition to enable the function
  */
-#define TINYMT_CPP_ENABLE(...)                                              \
-  typename TINYMT_CPP_ENABLE_T_ = std::nullptr_t,                           \
-           typename std::enable_if < std::is_same<TINYMT_CPP_ENABLE_T_,     \
-                                                  std::nullptr_t>::value && \
-               (__VA_ARGS__),                                               \
+#define TINYMT_CPP_ENABLE_WHEN(...)                                          \
+  typename TINYMT_CPP_ENABLE_WHEN_T_ = std::nullptr_t,                       \
+           typename std::enable_if < std::is_same<TINYMT_CPP_ENABLE_WHEN_T_, \
+                                                  std::nullptr_t>::value &&  \
+               (__VA_ARGS__),                                                \
            std::nullptr_t > ::type = nullptr
 
 /**
@@ -171,8 +171,8 @@ inline std::basic_ostream<CharT, Traits>& operator<<(
 template <
     class CharT, class Traits, class UIntType, std::size_t WordSize,
     std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat,
-    TINYMT_CPP_ENABLE(!tinymt_engine_status<UIntType, WordSize, Mat1, Mat2,
-                                            TMat>::is_dynamic::value)>
+    TINYMT_CPP_ENABLE_WHEN(!tinymt_engine_status<UIntType, WordSize, Mat1, Mat2,
+                                                 TMat>::is_dynamic::value)>
 inline std::basic_istream<CharT, Traits>& operator>>(
     std::basic_istream<CharT, Traits>& is,
     tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
@@ -182,10 +182,11 @@ inline std::basic_istream<CharT, Traits>& operator>>(
   return is;
 }
 
-template <class CharT, class Traits, class UIntType, std::size_t WordSize,
-          std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat,
-          TINYMT_CPP_ENABLE(tinymt_engine_status<UIntType, WordSize, Mat1, Mat2,
-                                                 TMat>::is_dynamic::value)>
+template <
+    class CharT, class Traits, class UIntType, std::size_t WordSize,
+    std::uintmax_t Mat1, std::uintmax_t Mat2, std::uintmax_t TMat,
+    TINYMT_CPP_ENABLE_WHEN(tinymt_engine_status<UIntType, WordSize, Mat1, Mat2,
+                                                TMat>::is_dynamic::value)>
 inline std::basic_istream<CharT, Traits>& operator>>(
     std::basic_istream<CharT, Traits>& is,
     tinymt_engine_status<UIntType, WordSize, Mat1, Mat2, TMat>& s) {
@@ -354,7 +355,7 @@ class tinymt_engine {
    *
    * @param seed random seed
    */
-  template <TINYMT_CPP_ENABLE(!status_type::is_dynamic::value)>
+  template <TINYMT_CPP_ENABLE_WHEN(!status_type::is_dynamic::value)>
   explicit tinymt_engine(result_type seed = default_seed) {
     impl::init(s_, seed);
   }
@@ -365,7 +366,7 @@ class tinymt_engine {
    * @param param parameter set
    * @param seed random seed
    */
-  template <TINYMT_CPP_ENABLE(status_type::is_dynamic::value)>
+  template <TINYMT_CPP_ENABLE_WHEN(status_type::is_dynamic::value)>
   explicit tinymt_engine(const param_type& param,
                          result_type seed = default_seed) {
     s_.mat1 = param.mat1 & impl::word_mask;
