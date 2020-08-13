@@ -247,6 +247,7 @@ template <class UIntType, std::uintmax_t Mat1, std::uintmax_t Mat2,
 struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
                           DoPeriodCertification> {
   using result_type = UIntType;
+  using signed_result_type = typename std::make_signed<result_type>::type;
   using status_type = tinymt_engine_status<UIntType, 32, Mat1, Mat2, TMat>;
   using param_type = detail::tinymt_engine_param<UIntType>;
 
@@ -323,8 +324,12 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     s.status[1] = s.status[2];
     s.status[2] = (x ^ (y << sh1)) & mask32;
     s.status[3] = y;
-    s.status[1] ^= (-(y & 1)) & s.mat1;
-    s.status[2] ^= (-(y & 1)) & s.mat2;
+    s.status[1] ^=
+        static_cast<result_type>(-static_cast<signed_result_type>(y & 1)) &
+        s.mat1;
+    s.status[2] ^=
+        static_cast<result_type>(-static_cast<signed_result_type>(y & 1)) &
+        s.mat2;
   }
 
   template <TINYMT_CPP_ENABLE_WHEN(!is_twos_complement<result_type>::value)>
@@ -343,7 +348,8 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
     result_type t0 = s.status[3];
     result_type t1 = s.status[0] + (s.status[2] >> sh8);
     t0 ^= t1;
-    t0 ^= (-(t1 & 1)) & s.tmat;
+    t0 ^= static_cast<result_type>(-static_cast<signed_result_type>(t1 & 1)) &
+          s.tmat;
     return t0 & mask32;
   }
 };
@@ -368,7 +374,8 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
 template <class UIntType, std::size_t WordSize, UIntType Mat1, UIntType Mat2,
           UIntType TMat, bool DoPeriodCertification = true>
 class tinymt_engine {
-  static_assert(std::is_unsigned<UIntType>::value,
+  static_assert(std::is_integral<UIntType>::value &&
+                    std::is_unsigned<UIntType>::value,
                 "result_type must be an unsigned integral type");
   static_assert(WordSize == 32, "word_size must be 32");
 
