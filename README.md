@@ -73,7 +73,7 @@ cmake -S . -B build/clang-tidy -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=ON
 cmake --build build/clang-tidy --target check
 
 # Benchmarking.
-cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKING=ON
 cmake --build build/release --target bench
 ```
 

@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.8)
 
-# Detect if the project is being bundled.
+# Detect if the project is the root or being bundled.
 
 if(NOT DEFINED PROJECT_NAME)
-  set(NOT_SUBPROJECT ON)
+  set(IS_ROOT_PROJECT ON)
 endif()
 
 # Project information.
@@ -14,26 +14,41 @@ project(
   LANGUAGES CXX)
 
 add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
+
 target_include_directories(
   ${PROJECT_NAME}
   INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>)
 
-if(NOT_SUBPROJECT)
+if(IS_ROOT_PROJECT)
   include(CTest)
+
+  set(PROJECT_CONFIG_LIB "tinymt_cpp_private_config")
+  add_library(${PROJECT_CONFIG_LIB} INTERFACE)
 
   # Additional compiler flags for testing.
 
   set(CMAKE_CXX_EXTENSIONS OFF)
 
   include(CheckCXXCompilerFlag)
+
   macro(TRY_CXX_COMPILER_FLAG flag var)
     check_cxx_compiler_flag(${flag} ${var})
     if(${var})
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
     endif()
   endmacro()
+
+  function(check_cxx_compiler_and_linker_flag flag var)
+    set(separated_flags ${flag})
+    # cmake-lint: disable=E1120
+    separate_arguments(separated_flags)
+    # cmake-lint: disable=C0103
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${separated_flags})
+    check_cxx_compiler_flag(${flag} ${var})
+  endfunction()
 
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     try_cxx_compiler_flag("-Weverything -Wno-c++98-compat-pedantic"
@@ -58,61 +73,69 @@ if(NOT_SUBPROJECT)
 
   # Document generation.
 
-  find_package(Doxygen)
+  option(BUILD_DOCUMENTS "Build documents" ON)
 
-  if(DOXYGEN_FOUND)
-    add_subdirectory(docs)
-  else()
-    message(STATUS "Doxygen not found")
+  if(BUILD_DOCUMENTS)
+    find_package(Doxygen)
+
+    if(DOXYGEN_FOUND)
+      add_subdirectory(docs)
+    else()
+      message(WARNING "Building documents requires Doxygen")
+    endif()
   endif()
 
-  # Code coverage.
+  # Benchmarking.
 
-  add_library(coverage_config INTERFACE)
+  option(BUILD_BENCHMARKING "Build benchmarks" OFF)
+
+  # Code coverage.
 
   option(USE_CODE_COVERAGE "Enable coverage reporting" OFF)
 
   if(USE_CODE_COVERAGE)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-      if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(coverage_config INTERFACE -O0 -g -coverage)
+    check_cxx_compiler_and_linker_flag("-O0 -g -coverage" CXX_HAS_COVERAGE_FLAG)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      if(CXX_HAS_COVERAGE_FLAG)
+        target_compile_options(${PROJECT_CONFIG_LIB} INTERFACE -O0 -g -coverage)
         if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-          target_link_options(coverage_config INTERFACE -coverage)
+          target_link_options(${PROJECT_CONFIG_LIB} INTERFACE -coverage)
         else()
-          target_link_libraries(coverage_config INTERFACE -coverage)
+          target_link_libraries(${PROJECT_CONFIG_LIB} INTERFACE -coverage)
         endif()
       else()
-        message(STATUS "Coverage reporting requires GCC or LLVM/Clang")
+        message(WARNING "Coverage reporting is not supported by the compiler")
       endif()
     else()
-      message(STATUS "Coverage reporting requires Debug build type")
+      message(WARNING "Coverage reporting requires GCC or LLVM/Clang")
     endif()
   endif()
 
   # ASAN/UBSAN.
 
-  add_library(sanitizer_config INTERFACE)
-
   option(USE_SANITIZER "Enable compiler sanitizers" OFF)
 
   if(USE_SANITIZER)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-      if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      check_cxx_compiler_and_linker_flag(
+        "-O0 -g -fsanitize=address,undefined -fno-omit-frame-pointer"
+        CXX_HAS_SANITIZER_FLAG)
+      if(CXX_HAS_SANITIZER_FLAG)
         target_compile_options(
-          sanitizer_config INTERFACE -O0 -g -fsanitize=address,undefined
-                                     -fno-omit-frame-pointer)
+          ${PROJECT_CONFIG_LIB} INTERFACE -O0 -g -fsanitize=address,undefined
+                                          -fno-omit-frame-pointer)
         if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-          target_link_options(sanitizer_config INTERFACE
+          target_link_options(${PROJECT_CONFIG_LIB} INTERFACE
                               -fsanitize=address,undefined)
         else()
-          target_link_libraries(sanitizer_config
+          target_link_libraries(${PROJECT_CONFIG_LIB}
                                 INTERFACE -fsanitize=address,undefined)
         endif()
       else()
-        message(STATUS "Compiler sanitizers require GCC or LLVM/Clang")
+        message(WARNING "Compiler sanitizers are not supported by the compiler")
       endif()
     else()
-      message(STATUS "Compiler sanitizers require Debug build type")
+      message(WARNING "Compiler sanitizers require GCC or LLVM/Clang")
     endif()
   endif()
 
@@ -125,10 +148,10 @@ if(NOT_SUBPROJECT)
   endif()
 endif()
 
-if((NOT_SUBPROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)
+if((IS_ROOT_PROJECT OR TINYMT_CPP_BUILD_TESTING) AND BUILD_TESTING)
   add_subdirectory(tests)
+endif()
 
-  if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_subdirectory(benches)
-  endif()
+if(IS_ROOT_PROJECT AND BUILD_BENCHMARKING)
+  add_subdirectory(benches)
 endif()

@@ -27,8 +27,8 @@ jobs:
       - uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_CLANG_TIDY=YES
-          buildWithCMakeArgs: --target test-include.exe test-expand.exe
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DBUILD_DOCUMENTS=OFF -DUSE_CLANG_TIDY=ON
+          buildWithCMakeArgs: --config Debug --target test-include.exe test-expand.exe
   doc:
     runs-on: ubuntu-latest
     steps:
@@ -47,9 +47,9 @@ jobs:
       - uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DBUILD_DOCUMENTS=OFF -DUSE_CODE_COVERAGE=ON
           buildDirectory: _temp
-          buildWithCMakeArgs: --target check
+          buildWithCMakeArgs: --config Debug --target check
       - uses: codecov/codecov-action@v1
   coverage-disable-twos-complement:
     runs-on: ubuntu-latest
@@ -58,9 +58,9 @@ jobs:
       - uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_CODE_COVERAGE=YES
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DBUILD_DOCUMENTS=OFF -DUSE_CODE_COVERAGE=ON
           buildDirectory: _temp
-          buildWithCMakeArgs: --target check
+          buildWithCMakeArgs: --config Debug --target check
         env:
           CXXFLAGS: -DTINYMT_CPP_TWOS_COMPLEMENT=0
       - uses: codecov/codecov-action@v1
@@ -71,8 +71,8 @@ jobs:
       - uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Release
-          buildWithCMakeArgs: --target check bench
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Release -DBUILD_DOCUMENTS=OFF -DBUILD_BENCHMARKING=ON
+          buildWithCMakeArgs: --config Release --target check bench
         env:
           NANOBENCH_SUPPRESS_WARNINGS: 1
   test:
@@ -82,8 +82,10 @@ jobs:
         include:
           - os: ubuntu-latest
             compiler: g++
+            cmake_options: -DUSE_SANITIZER=ON
           - os: ubuntu-latest
             compiler: clang++
+            cmake_options: -DUSE_SANITIZER=ON
           - os: windows-latest
             compiler: cl
     runs-on: ${{ matrix.os }}
@@ -94,5 +96,5 @@ jobs:
       - uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=YES
+          cmakeAppendedArgs: -DCMAKE_BUILD_TYPE=Debug -DBUILD_DOCUMENTS=OFF ${{ matrix.cmake_options }}
           buildWithCMakeArgs: --config Debug --target check

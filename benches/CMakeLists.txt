@@ -1,4 +1,7 @@
-if(NOT_SUBPROJECT)
+cmake_minimum_required(VERSION 3.11)
+include(FetchContent)
+
+if(IS_ROOT_PROJECT)
   # Define the "bench" target.
   add_custom_target(
     bench
@@ -6,7 +9,6 @@ if(NOT_SUBPROJECT)
     COMMENT "Running benchmark tests")
 endif()
 
-include(FetchContent)
 FetchContent_Declare(
   nanobench
   GIT_REPOSITORY https://github.com/martinus/nanobench.git
@@ -22,7 +24,8 @@ function(tinymt_cpp_bench name)
   target_link_libraries(${name}.exe tinymt)
   target_include_directories(${name}.exe
                              PRIVATE "${nanobench_SOURCE_DIR}/src/include")
-  if(NOT_SUBPROJECT)
+  if(IS_ROOT_PROJECT)
+    target_link_libraries(${name}.exe ${PROJECT_CONFIG_LIB})
     add_dependencies(bench ${name}.exe)
   endif()
 endfunction()

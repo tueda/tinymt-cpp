@@ -1,4 +1,7 @@
-if(NOT_SUBPROJECT)
+cmake_minimum_required(VERSION 3.11)
+include(FetchContent)
+
+if(IS_ROOT_PROJECT)
   # Define the "check" target. Use "make check" instead of "make test"; the
   # latter is known not to update executables (cmake/cmake#8774).
   add_custom_target(
@@ -7,7 +10,6 @@ if(NOT_SUBPROJECT)
     COMMENT "Running tests")
 endif()
 
-include(FetchContent)
 FetchContent_Declare(
   doctest
   GIT_REPOSITORY https://github.com/onqtam/doctest.git
@@ -23,9 +25,8 @@ function(tinymt_cpp_test name)
   add_executable(${name}.exe ${name}.cpp)
   target_link_libraries(${name}.exe tinymt)
   target_link_libraries(${name}.exe doctest)
-  if(NOT_SUBPROJECT)
-    target_link_libraries(${name}.exe coverage_config)
-    target_link_libraries(${name}.exe sanitizer_config)
+  if(IS_ROOT_PROJECT)
+    target_link_libraries(${name}.exe ${PROJECT_CONFIG_LIB})
     add_dependencies(check ${name}.exe)
   endif()
   add_test(NAME ${name} COMMAND ${name}.exe)
