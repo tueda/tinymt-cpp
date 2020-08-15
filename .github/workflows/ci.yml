@@ -51,6 +51,8 @@ jobs:
           buildDirectory: _temp
           buildWithCMakeArgs: --config Debug --target check
       - uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
   coverage-disable-twos-complement:
     runs-on: ubuntu-latest
     steps:
@@ -64,6 +66,8 @@ jobs:
         env:
           CXXFLAGS: -DTINYMT_CPP_TWOS_COMPLEMENT=0
       - uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
   bench:
     runs-on: ubuntu-latest
     steps:
