@@ -273,6 +273,10 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
   static constexpr result_type mask = 0x7fffffffU;
 
   static void period_certification(status_type& s) {
+    // In theory, this may happen but I don't know any example, so it is too
+    // difficult to cover these lines.
+
+    // LCOV_EXCL_START
     if ((s.status[0] & mask) == 0 && s.status[1] == 0 && s.status[2] == 0 &&
         s.status[3] == 0) {
       s.status[0] = 'T';
@@ -280,6 +284,7 @@ struct tinymt_engine_impl<UIntType, 32, Mat1, Mat2, TMat,
       s.status[2] = 'N';
       s.status[3] = 'Y';
     }
+    // LCOV_EXCL_STOP
   }
 
   static void init(status_type& s, result_type seed) {
